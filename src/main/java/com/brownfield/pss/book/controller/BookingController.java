@@ -30,6 +30,6 @@ public class BookingController {
 	
 	@RequestMapping("/get/{id}")
 	BookingRecord getBooking(@PathVariable long id){
-		return bookingComponent.getBooking(id);
+		return bookingComponent.getBooking(id).get();
 	}	
 }

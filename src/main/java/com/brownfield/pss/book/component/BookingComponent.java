@@ -3,9 +3,10 @@ package com.brownfield.pss.book.component;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ import com.brownfield.pss.book.repository.InventoryRepository;
 
 @Service
 public class BookingComponent {
-	private static final Logger logger = LoggerFactory.getLogger(BookingComponent.class);
+	private static final org.slf4j.Logger logger =  LoggerFactory.getLogger(BookingComponent.class);
 	private static final String FareURL = "http://localhost:8081/fares";
 
 	BookingRepository bookingRepository;
@@ -49,7 +50,7 @@ public class BookingComponent {
 		fare = restTemplate.getForObject(FareURL + "/get?flightNumber=" + record.getFlightNumber() + "&flightDate=" + record.getFlightDate(), Fare.class);
 		logger.info("calling fares to get fare " + fare);
 		}catch(Exception e){
-			logger.error("FARE SERVICE IS NOT AVAILABLE");
+			logger.info("FARE SERVICE IS NOT AVAILABLE");
 		}
 		// check fare
 		if (!record.getFare().equals(fare.getFare()))
@@ -88,17 +89,33 @@ public class BookingComponent {
 		return id;
 	}
 
-	public BookingRecord getBooking(long id) {
-		return bookingRepository.findOne(id);
+//	public BookingRecord getBooking(long id) {
+//		return bookingRepository.findOne(id);
+//	}
+	
+	public Optional<BookingRecord> getBooking(long id) {
+		return bookingRepository.findById(id);
 	}
 	
 	//The below method is invoked after checked-in to change status from BOOKING_CONFIRMED TO CHECKED_IN
+	
+	
+//	public void updateStatus(String status, long bookingId) {
+//		BookingRecord record = bookingRepository.findOne(bookingId);
+//		if (record != null) { // added by Ramesh K.
+//			record.setStatus(status);
+//			logger.info("Updating status = " + status + " of bookingId = " + bookingId); // Added by Ramesh K.
+//			bookingRepository.save(record); // Added by Ramesh K
+//		}
+//	}
+	
+	
 	public void updateStatus(String status, long bookingId) {
-		BookingRecord record = bookingRepository.findOne(bookingId);
-		if (record != null) { // added by Ramesh K.
-			record.setStatus(status);
+		Optional<BookingRecord> record = bookingRepository.findById(bookingId);
+		if (record.isPresent()) { // added by Ramesh K.
+			record.get().setStatus(status);
 			logger.info("Updating status = " + status + " of bookingId = " + bookingId); // Added by Ramesh K.
-			bookingRepository.save(record); // Added by Ramesh K
+			bookingRepository.save(record.get()); // Added by Ramesh K
 		}
 	}
 }
