@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -20,15 +21,18 @@ import com.brownfield.pss.book.repository.BookingRepository;
 import com.brownfield.pss.book.repository.InventoryRepository;
 
 @Service
+@EnableFeignClients
 public class BookingComponent {
 	private static final org.slf4j.Logger logger =  LoggerFactory.getLogger(BookingComponent.class);
-	private static final String FareURL = "http://localhost:8081/fares";
+	// Feign: private static final String FareURL = "http://localhost:8081/fares";
 
 	BookingRepository bookingRepository;
 	InventoryRepository inventoryRepository;
 
-	// @Autowired
-	private RestTemplate restTemplate;
+	@Autowired
+	private FareServiceProxy fareServiceProxy;
+	
+	// Feign: private RestTemplate restTemplate;
 
 	Sender sender;
 
@@ -36,7 +40,7 @@ public class BookingComponent {
 	public BookingComponent(BookingRepository bookingRepository, Sender sender,
 			InventoryRepository inventoryRepository) {
 		this.bookingRepository = bookingRepository;
-		this.restTemplate = new RestTemplate();
+		// Feign: this.restTemplate = new RestTemplate();
 		this.sender = sender;
 		this.inventoryRepository = inventoryRepository;
 	}
@@ -47,8 +51,9 @@ public class BookingComponent {
 		Fare fare = null;
 		try{
 		// Make a rest call with Fare micro service to get flight price details
-		fare = restTemplate.getForObject(FareURL + "/get?flightNumber=" + record.getFlightNumber() + "&flightDate=" + record.getFlightDate(), Fare.class);
-		logger.info("calling fares to get fare " + fare);
+		// fare = restTemplate.getForObject(FareURL + "/get?flightNumber=" + record.getFlightNumber() + "&flightDate=" + record.getFlightDate(), Fare.class);
+			fare=fareServiceProxy.getFare(record.getFlightNumber() , record.getFlightDate());
+			logger.info("calling fares to get fare " + fare);
 		}catch(Exception e){
 			logger.info("FARE SERVICE IS NOT AVAILABLE");
 		}
